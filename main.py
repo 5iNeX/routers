@@ -164,96 +164,99 @@ def initial_information():
 
 def settings_rout():
     print(f'''Текущие настройки:\n
-    ip адрес роутера - {HOST_ROUTER}
-    ip адрес оборудования - {HOST_EQ}
-    Количество портов - {PORTS}
-    С какого порта начинаем - {PORTS_START}'''
-    )
+ip адрес роутера - {HOST_ROUTER}
+ip адрес оборудования - {HOST_EQ}
+Количество портов - {PORTS}
+С какого порта начинаем - {PORTS_START}''')
 
-    def main_setup():
-        global router_warning_again
-        connect_eq = tl.Telnet(HOST_EQ)
-        login_(eq=connect_eq, ports=PORTS)
-        router_warning_again = []
-        for port in range(PORTS_START, PORTS + 1):
-            logic_setup(port=port, connect_eq=connect_eq, list_router=router_warning_again)
-        end_setup(connect_eq, router_warning_again)
 
-    def main_setup_again():
-        global router_warning_again_main, router_warning_again
-        connect_eq = tl.Telnet(HOST_EQ)
-        login_(eq=connect_eq, ports=PORTS)
-        router_warning_again = []
-        for port in router_warning_again_main:
-            logic_setup(port=port, connect_eq=connect_eq, list_router=router_warning_again)
-        end_setup(connect_eq, router_warning_again)
+def main_setup():
+    global router_warning_again
+    connect_eq = tl.Telnet(HOST_EQ)
+    login_(eq=connect_eq, ports=PORTS)
+    router_warning_again = []
+    for port in range(PORTS_START, PORTS + 1):
+        logic_setup(port=port, connect_eq=connect_eq, list_router=router_warning_again)
+    end_setup(connect_eq, router_warning_again)
 
-    def logic_setup(*, port, connect_eq, list_router):
-        start = time.time()
-        if SSH_AND_TELNET == '1':
-            try:
-                print(f'Поднимаем порт -{port}')
-                switching_port_up(eq=connect_eq, current_port=port)
-                print(f'Подключаемся к роутеру -{port}')
-                # connect_router = tl.Telnet(HOST_ROUTER)
-                print(f'Настраивает роутер -{port}')
-                # router_setup(eq_=connect_router)
-                router_setup_ssh()
-                print(f'Готов роутер - {port}')
-                switching_port_down(eq=connect_eq)
-                print(f'Port down - {port}')
-            except Exception:
-                # connect_eq.close()
-                switching_port_down(eq=connect_eq)
-                list_router.append(port)
-                print(f'Какая-то проблема с {port} роутером, Пропускаю его и перехожу к следующему')
-            end = time.time()
-            print('Время настройки - ', end - start)
-        elif SSH_AND_TELNET == '2':
-            try:
-                print(f'Поднимаем порт -{port}')
-                switching_port_up(eq=connect_eq, current_port=port)
-                print(f'Подключаемся к роутеру -{port}')
-                connect_router = tl.Telnet(HOST_ROUTER)
-                print(f'Настраивает роутер -{port}')
-                router_setup(eq_=connect_router)
-                print(f'Готов роутер - {port}')
-                switching_port_down(eq=connect_eq)
-                print(f'Port down - {port}')
-            except Exception:
-                # connect_eq.close()
-                switching_port_down(eq=connect_eq)
-                list_router.append(port)
-                print(f'Какая-то проблема с {port} роутером, Пропускаю его и перехожу к следующему')
-            end = time.time()
-            print('Время настройки - ', end - start)
 
-    def end_setup(connect_eq, list_router):
-        global router_warning_again_main
-        if len(list_router) != 0:
-            print(f'Проблемы с роутерами {list_router}'
-                  f'\nповторная настройка проблемных роутеров')
-            connect_eq.close()
-            router_warning_again_main = list_router
-            main_setup_again()
-        else:
-            print(f'Настроено {PORTS} роутеров')
-            connect_eq.close()
+def main_setup_again():
+    global router_warning_again_main, router_warning_again
+    connect_eq = tl.Telnet(HOST_EQ)
+    login_(eq=connect_eq, ports=PORTS)
+    router_warning_again = []
+    for port in router_warning_again_main:
+        logic_setup(port=port, connect_eq=connect_eq, list_router=router_warning_again)
+    end_setup(connect_eq, router_warning_again)
 
-    while True:
-        user_input = input('''
-        O - для изменения настроек
-        P - для просмотра настроек
-        SSH - 1
-        Telnet - 2
-        Для продолжения нажми 1 или 2:''')
-        print('ПОЕХАЛИ')
-        if user_input == 'o' or user_input == 'O':
-            initial_information()
-        elif user_input == 'i' or user_input == 'I':
-            main_setup_again()
-        elif user_input == 'p' or user_input == 'P':
-            settings_rout()
-        elif user_input == '1' or user_input == '2':
-            SSH_AND_TELNET = user_input
-            main_setup()
+
+def logic_setup(*, port, connect_eq, list_router):
+    start = time.time()
+    if SSH_AND_TELNET == '1':
+        try:
+            print(f'Поднимаем порт -{port}')
+            switching_port_up(eq=connect_eq, current_port=port)
+            print(f'Подключаемся к роутеру -{port}')
+            # connect_router = tl.Telnet(HOST_ROUTER)
+            print(f'Настраивает роутер -{port}')
+            # router_setup(eq_=connect_router)
+            router_setup_ssh()
+            print(f'Готов роутер - {port}')
+            switching_port_down(eq=connect_eq)
+            print(f'Port down - {port}')
+        except Exception:
+            # connect_eq.close()
+            switching_port_down(eq=connect_eq)
+            list_router.append(port)
+            print(f'Какая-то проблема с {port} роутером, Пропускаю его и перехожу к следующему')
+        end = time.time()
+        print('Время настройки - ', end - start)
+    elif SSH_AND_TELNET == '2':
+        try:
+            print(f'Поднимаем порт -{port}')
+            switching_port_up(eq=connect_eq, current_port=port)
+            print(f'Подключаемся к роутеру -{port}')
+            connect_router = tl.Telnet(HOST_ROUTER)
+            print(f'Настраивает роутер -{port}')
+            router_setup(eq_=connect_router)
+            print(f'Готов роутер - {port}')
+            switching_port_down(eq=connect_eq)
+            print(f'Port down - {port}')
+        except Exception:
+            # connect_eq.close()
+            switching_port_down(eq=connect_eq)
+            list_router.append(port)
+            print(f'Какая-то проблема с {port} роутером, Пропускаю его и перехожу к следующему')
+        end = time.time()
+        print('Время настройки - ', end - start)
+
+
+def end_setup(connect_eq, list_router):
+    global router_warning_again_main
+    if len(list_router) != 0:
+        print(f'Проблемы с роутерами {list_router}'
+              f'\nповторная настройка проблемных роутеров')
+        connect_eq.close()
+        router_warning_again_main = list_router
+        main_setup_again()
+    else:
+        print(f'Настроено {PORTS} роутеров')
+        connect_eq.close()
+
+
+while True:
+    user_input = input('''O - для изменения настроек
+P - для просмотра настроек
+SSH - 1
+Telnet - 2
+Для продолжения нажми 1 или 2:''')
+    print('ПОЕХАЛИ')
+    if user_input == 'o' or user_input == 'O':
+        initial_information()
+    elif user_input == 'i' or user_input == 'I':
+        main_setup_again()
+    elif user_input == 'p' or user_input == 'P':
+        settings_rout()
+    elif user_input == '1' or user_input == '2':
+        SSH_AND_TELNET = user_input
+        main_setup()
